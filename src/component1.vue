@@ -1,7 +1,7 @@
 <template>
 <div class="this is component1">
     this is content of component1
-    <component2/>
+    <!-- <component2/> -->
 </div>
 </template>
 

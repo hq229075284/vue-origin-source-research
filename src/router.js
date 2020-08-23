@@ -13,6 +13,11 @@ const routes = [
     // component: () => import("./component2.vue"),
     component: require("./component2.vue").default,
   },
+  {
+    path: "/c",
+    // component: () => import("./component2.vue"),
+    component: require("./component3.vue").default,
+  },
 ];
 
 export default new VueRouter({

@@ -13,6 +13,7 @@
     "@babel/preset-env": "^7.11.0",
     "babel-loader": "^8.1.0",
     "core-js": "^3.6.5",
+    "vant": "^2.10.2",
     "vue": "^2.6.12",
     "vue-loader": "^15.9.3",
     "vue-router": "^3.4.3",
@@ -20,6 +21,11 @@
     "webpack-cli": "^3.3.12"
   },
   "devDependencies": {
+    "@vue/babel-helper-vue-jsx-merge-props": "^1.0.0",
+    "@vue/babel-preset-jsx": "^1.1.2",
+    "babel-helper-vue-jsx-merge-props": "^2.0.3",
+    "babel-plugin-syntax-jsx": "^6.18.0",
+    "babel-plugin-transform-vue-jsx": "^3.7.0",
     "html-webpack-plugin": "^4.3.0",
     "vue-template-compiler": "^2.6.12",
     "webpack-dev-server": "^3.11.0"
