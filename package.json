@@ -2,9 +2,8 @@
   "name": "vue-origin-source",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "dev": "webpack-dev-server"
+    "dev": "webpack-dev-server --config webpack.config.js"
   },
   "keywords": [],
   "author": "",
@@ -13,13 +12,16 @@
     "@babel/core": "^7.11.0",
     "@babel/preset-env": "^7.11.0",
     "babel-loader": "^8.1.0",
-    "vue": "^2.6.11",
+    "core-js": "^3.6.5",
+    "vue": "^2.6.12",
     "vue-loader": "^15.9.3",
+    "vue-router": "^3.4.3",
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12"
   },
   "devDependencies": {
     "html-webpack-plugin": "^4.3.0",
+    "vue-template-compiler": "^2.6.12",
     "webpack-dev-server": "^3.11.0"
   }
 }

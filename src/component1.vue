@@ -19,10 +19,10 @@ export default {
         console.log('component 1 beforeCreated')
     },
     created(){
-        console.log('component 1 mounted')
+        console.log('component 1 created')
     },
     beforeMount(){
-        console.log('component 1 mounted')
+        console.log('component 1 beforeMount')
     },
     mounted(){
         console.log('component 1 mounted')

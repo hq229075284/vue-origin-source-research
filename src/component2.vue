@@ -14,10 +14,10 @@ export default {
         console.log('component 2 beforeCreated')
     },
     created(){
-        console.log('component 2 mounted')
+        console.log('component 2 created')
     },
     beforeMount(){
-        console.log('component 2 mounted')
+        console.log('component 2 beforeMount')
     },
     mounted(){
         console.log('component 2 mounted')
