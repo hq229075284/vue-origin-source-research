@@ -1,9 +1,11 @@
 import Vue from 'vue'
 import main from './main'
-import router from './router'
+import component1 from './component1'
+// import router from './router'
 
 new Vue({
     el:document.querySelector('#app'),
-    render:(h)=>h(main),
-    router
+    render:(h)=>h(component1),
+    // render:(h)=>h(main),
+    // router
 })

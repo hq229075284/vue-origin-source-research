@@ -1,0 +1,74 @@
+vm
+{
+    _uid: number // 从0累加
+    _Vue: true
+    _renderProxy: vmInstance
+    _self: vmInstance
+    $options: mergeOptions的return值
+    /* function initLifecycle 中初始化 start  */
+    $parent
+    $root:vmRootInstance
+    $children: vmInstance[]
+    $refs: {}
+    _watcher:null
+    _inactive:null
+    _directInactive:false
+    _isBeingDestroyed:false
+    _isDestroyed:false
+    /* function initLifecycle 中初始化 end  */
+    
+    /* function initEvents 中初始化 start  */
+    _events: Object.create(null)
+    _hasHookEvent: false
+    /* function initEvents 中初始化 end  */
+    
+    /* function initRender 中初始化 start  */
+    _vnode: null
+    _staticTrees: null
+    $slots
+    $scopedSlots: freeze({})
+    _c: $createElement function
+    $createElement: $createElement function
+    $attrs: freeze({}) // Object.defineProperty 添加响应get、set
+    $listeners: freeze({}) // Object.defineProperty 添加响应get、set
+    /* function initRender 中初始化 end  */
+
+}
+
+Dep instance
+{
+    id: number // 从0累加
+    subs: []
+}
+
+constructer.options
+{
+    compoents:component[]
+    directives:directive[]
+    filters:{}
+}
+
+
+// 将props转为对象；属性名作为key，也转为小驼峰形式
+function normalizeProps 
+
+// 处理inject
+function normalizeInject
+
+// 转化指令函数为{bind:def$$1,update:def$$1}
+function normalizeDirectives 
+
+// 将parent和child对象进行合并，parent部分属性会被child的属性覆盖，比如el；parent部分属性会挂载到child对应属性值对象的原型上（__proto__），比如components
+function mergeOptions(parent,child) 
+
+// 创建新对象，且新对象的__proto__指向parentValue对象，childValue对象上属性被复制到新对象上
+function mergeAssets(parentValue,childValue) 
+
+// 初始化vm实例上的属性
+function initLifecycle
+
+// 初始化vm实例上的事件属性
+function initEvents
+
+// 
+function initRender
