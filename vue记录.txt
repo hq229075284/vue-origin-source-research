@@ -5,6 +5,7 @@ vm
     _renderProxy: vmInstance
     _self: vmInstance
     $options: mergeOptions的return值
+    
     /* function initLifecycle 中初始化 start  */
     $parent
     $root:vmRootInstance
@@ -25,7 +26,7 @@ vm
     /* function initRender 中初始化 start  */
     _vnode: null
     _staticTrees: null
-    $slots
+    $slots: {}
     $scopedSlots: freeze({})
     _c: $createElement function
     $createElement: $createElement function
@@ -33,13 +34,90 @@ vm
     $listeners: freeze({}) // Object.defineProperty 添加响应get、set
     /* function initRender 中初始化 end  */
 
+    /* function initState 中初始化 start  */
+    _watcher: watcher instance
+    _watchers:[] // 所有watcher的集合（包含computed、watch）
+        /* function initProps 中初始化 start  */
+        _props:{} // 存储响应式的props对象
+        $options._propKeys=[] //  prop的key集合
+        /* function initProps 中初始化 end  */
+
+        /* function initMethods 中初始化 start  */
+        将method绑定vm，并作为属性赋值到vm上
+        /* function initMethods 中初始化 end  */
+
+        /* function initData 中初始化 start  */
+        _data: vm.$options.data // observe data对象
+        /* function initData 中初始化 end  */
+
+        /* function initComputed 中初始化 start  */
+        _computedWatchers: Object.create(null) // computed watcher instance映射对象
+        /* function initComputed 中初始化 end  */
+
+    /* function initState 中初始化 end  */
+
+    /* function initProvide 中初始化 start  */
+    _provided: vm.$options.provide;
+    /* function initProvide 中初始化 end  */
+
+    /* function mountComponent 中初始化 start  */
+    $el: el
+    /* function mountComponent 中初始化 end  */
+
+    Vue.prototype._render
+
+    // 创建组件构造函数，继承自Vue的构造函数，即Sub.prototype=Object.create(Vue.prototype)
+    Vue.extend
 }
+
+// hook调用顺序
+beforeCreate
+created
+beforeMount
+
+Observer instance
+{
+    value:原始对象
+        __ob__:挂载在value上，指向当前这个Observer instance
+    dep:Dep instance
+    vmCount:0
+}
+
+// 数组类型的value，其__proto__会被赋值为arrayMethods(特殊封装的操作数组函数)
+// 对象类型的value，遍历对象上的属性，对每个属性定义
+function Observer (value) 
 
 Dep instance
 {
     id: number // 从0累加
     subs: []
 }
+Dep函数上的属性
+{
+    target:null // 存储watch instance
+}
+
+Watcher
+{
+    vm: vm
+    deep: false
+    user: false
+    lazy: true
+    sync: false
+    before: false
+    cb: Function
+    id: // 从0累加
+    active: true
+    dirty: this.lazy
+    deps: []
+    newDeps: []
+    depIds: new Set()
+    newDepIds: new Set()
+    expression: watch的getter函数toString
+    getter: Function
+    value = this.lazy ? undefined : this.getter.call(vm, vm);
+}
+
 
 constructer.options
 {
@@ -70,5 +148,53 @@ function initLifecycle
 // 初始化vm实例上的事件属性
 function initEvents
 
-// 
+// 初始化渲染函数所要的数据
 function initRender
+
+// 调用hook
+function callHook(vm,hook){// hook为hookName
+    ...
+    var handlers = vm.$options[hook];
+    if (handlers) {
+      for (var i = 0, j = handlers.length; i < j; i++) {// 同步执行
+        invokeWithErrorHandling(handlers[i], vm, null, vm, info);
+      }
+    }
+    ...
+    if (vm._hasHookEvent) {
+        vm.$emit('hook:' + hook);
+    }
+    ...
+}
+
+// 获取父级provide提供的inject到当前组件的数据对象，仅向上查找到第一次找到位置，找到后不再向上查找
+// 如果找到根组件都没找到，则使用inject中设置的default属性
+function resolveInject
+
+// 将inject的数据挂载到vm上
+function initInjections
+
+// 初始化props、methods、data、computed、watch
+function initState
+
+// observe流程，observe仅监听引用类型数据
+observe -> new Observer -> defineReactive$$1 -> observe
+
+function defineComputed
+    // computed 使用缓存
+    var shouldCache = !isServerRendering();
+    sharedPropertyDefinition.get = shouldCache
+        ? createComputedGetter(key)
+        : createGetterInvoker(userDef);
+
+    // 如果this._computedWatchers[key]的watcher的dirty属性为true时，执行watcher.evaluate(), return watcher.value
+    function createComputedGetter(key)
+
+    // 每次get时直接调用computed上对应的函数
+    function createGetterInvoker(getter)
+
+// 对computed上的属性，在vm上设置对应的getter、setter
+funciton initComputed
+
+// 将watch添加到_watchers中
+function initWatch
