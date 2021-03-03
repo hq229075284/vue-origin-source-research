@@ -64,10 +64,40 @@ vm
     $el: el
     /* function mountComponent 中初始化 end  */
 
-    Vue.prototype._render
+    /* function Vue.prototype._render start */
+    $vnode: $options._parentVnode
+    /* function Vue.prototype._render end */
+
 
     // 创建组件构造函数，继承自Vue的构造函数，即Sub.prototype=Object.create(Vue.prototype)
     Vue.extend
+}
+
+VNode
+{
+  tag: tag // `vue-component-${Ctor.cid}-${组件名称}`
+  data: data // createElement的第二个参数
+  children: children
+  text: text
+  elm: elm
+  ns: undefined
+  context: vm
+  fnContext: undefined
+  fnOptions: undefined
+  fnScopeId: undefined
+  key: data&& data.key;
+  componentOptions: {propsData: 父组件传递的属性, listeners: createElement第二个参数对象on属性对应的配置对象, tag: undefined, children: undefined, Ctor: ƒ}
+  componentInstance: undefined
+  parent: undefined
+  raw: false
+  isStatic: false
+  isRootInsert: true
+  isComment: false
+  isCloned: false
+  isOnce: false
+  asyncFactory: asyncFactory // undefined
+  asyncMeta: undefined
+  isAsyncPlaceholder: false
 }
 
 // hook调用顺序
@@ -198,3 +228,9 @@ funciton initComputed
 
 // 将watch添加到_watchers中
 function initWatch
+
+// 遍历所有层级的children，将其扁平化到一维数组
+function normalizeArrayChildren
+
+// 
+function __patch__
