@@ -65,7 +65,7 @@ vm
     /* function mountComponent 中初始化 end  */
 
     /* function Vue.prototype._render start */
-    $vnode: $options._parentVnode
+    $vnode: $options._parentVnode // 子组件的父组件对应的vnode实例
     /* function Vue.prototype._render end */
 
 

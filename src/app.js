@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import main from './main'
+// import main from './main'
 import component1 from './component1'
 // import router from './router'
 debugger
