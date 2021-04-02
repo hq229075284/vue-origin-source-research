@@ -6,7 +6,7 @@ const VueLoaderPlugin = require("vue-loader/lib/plugin");
 module.exports = {
   mode: "development",
   entry: {
-    main: path.join(__dirname, "./src/app.js"),
+    main: path.join(__dirname, "./src/app-multi-child.js"),
     // app:'./src/app.js'
   },
   output: {
