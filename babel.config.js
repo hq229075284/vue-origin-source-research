@@ -5,7 +5,7 @@ module.exports={
             useBuiltIns:'usage',
             targets:"> 0.25%, not dead"
         }],
-        // "@vue/babel-preset-jsx"
+        "@vue/babel-preset-jsx"
     ],
-    "plugins": ["transform-vue-jsx"]
+    // "plugins": ["transform-vue-jsx"]
 }

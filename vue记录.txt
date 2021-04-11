@@ -148,6 +148,23 @@ Watcher
     value = this.lazy ? undefined : this.getter.call(vm, vm);
 }
 
+vm上的watch使用for...in循环出来的
+```
+function initWatch (vm, watch) {
+  for (var key in watch) {
+    var handler = watch[key];
+    if (Array.isArray(handler)) {
+      for (var i = 0; i < handler.length; i++) {
+        createWatcher(vm, key, handler[i]);
+      }
+    } else {
+      createWatcher(vm, key, handler);
+    }
+  }
+}
+```
+
+主进程中watch中的handler被放入一个任务队列中，该任务队列的调用方式：在Promise.resolve().then(()=>{遍历任务队列中的所有任务并执行})
 
 constructer.options
 {
@@ -208,7 +225,7 @@ function initInjections
 function initState
 
 // observe流程，observe仅监听引用类型数据
-observe -> new Observer -> defineReactive$$1 -> observe
+observe(如果观察数据是普通对象且不是vnode实例) -> new Observer -> 遍历obj上所有的key，对每个key执行defineReactive$$1 -> observe(同上)
 
 function defineComputed
     // computed 使用缓存

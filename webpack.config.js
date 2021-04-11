@@ -6,8 +6,9 @@ const VueLoaderPlugin = require("vue-loader/lib/plugin");
 module.exports = {
   mode: "development",
   entry: {
-    main: path.join(__dirname, "./src/app-multi-child.js"),
-    // app:'./src/app.js'
+    // main: path.join(__dirname, "./src/app-multi-child.js"),
+    // main: path.join(__dirname, "./src/app-div.js"),
+    main: path.join(__dirname, "./src/app-watch.js"),
   },
   output: {
     path: path.resolve(__dirname, "dist"),
@@ -16,7 +17,14 @@ module.exports = {
   module: {
     rules: [
       { test: /\.vue$/, use: "vue-loader" },
-      { test: /\.js$/, use: "babel-loader", include: path.resolve(__dirname,'src') },
+      { test: /\.css$/, use: ['style-loader', "css-loader"] },
+      {
+        test: /\.less$/, use: ['vue-style-loader', 'css-loader', {
+          loader: "less-loader", options: {}
+        }]
+      },
+      { test: /\.js$/, use: "babel-loader", include: path.resolve(__dirname, 'src') },
+      { test: /\.(ttf|woff)$/, use: "file-loader" },
     ],
   },
   resolve: {
