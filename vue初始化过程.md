@@ -1,6 +1,8 @@
-# vue初始化过程
+[toc]
 
-## 总览
+# Vue
+
+## vue初始化过程总览
 
 1. 实例化root组件（$root）
    1. omit
@@ -8,8 +10,6 @@
    3. 调用`vm.$mount
       1. 进行**组件mount实例化流程**
    4. 调用`mounted`函数
-
-
 
 ### 组件mount实例化流程
 
@@ -78,3 +78,154 @@
             3. 对原$root的vnode即其子vnode，递归的移除`refs`和调用`directive`的`unbind`函数
             4. 执行`insertedVnodeQueue`中的所有函数（调用mounted函数）
       3. 将vnode对应的elm赋值给组件实例的`$el`属性上
+
+## vue内部如何实现依赖收集
+
+### 相关对象了解
+
+```
+Watch实例属性：
+newDeps// 用于收集dep实例
+newDepIds// 用于收集dep实例的id
+deps// 用于记录上一次收集的dep实例
+depIds// 用于上一次收集的dep实例的id
+```
+
+```
+Dep实例属性：
+subs// 用于收集Watch实例
+```
+
+```
+Dep.target// targetStack最后一个watch实例元素
+targetStack // 记录watch的堆栈，数据类型为Array，最后一个元素为当前watch实例，等价于Dep.target
+```
+
+vue组件实例初始化结束后，在调用mountComponent时，会产生一个render_watcher（Watcher实例）,并将此watcher推入到targetStack中，此时Dep.target引用此watcher。
+
+```javascript
+var updateComponent;
+  /* istanbul ignore if */
+  if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
+    updateComponent = function () {
+      // omit
+    };
+  } else {
+    updateComponent = function () {
+      vm._update(vm._render(), hydrating);
+    };
+  }
+
+  // we set this to vm._watcher inside the watcher's constructor
+  // since the watcher's initial patch may call $forceUpdate (e.g. inside child
+  // component's mounted hook), which relies on vm._watcher being already defined
+  new Watcher(vm, updateComponent, noop, { // <- updateComponent会同步执行，且在执行前，此render_watcher会被推入targetStack
+    before: function before () {
+      if (vm._isMounted && !vm._isDestroyed) {
+        callHook(vm, 'beforeUpdate');
+      }
+    }
+  }, true /* isRenderWatcher */);
+```
+
+之后调用updateComponent函数构建组件vnode树，在此期间会访问data上的被observe的属性，比如：
+
+```javascript
+{
+    data(){
+     return {
+         a:1
+     }
+ }
+ render(){
+     return <div>{this.a}</div>
+ }
+}
+```
+
+此时的`a`就是当前render的依赖
+
+在初始化组件时会observe `a`，会为其设置getter：
+
+```javascript
+function defineReactive$$1 (
+  obj,
+  key,
+  val,
+  customSetter,
+  shallow
+) {
+  var dep = new Dep();// <- 当前属性的依赖标识对象
+
+  var property = Object.getOwnPropertyDescriptor(obj, key);
+  if (property && property.configurable === false) {
+    return
+  }
+
+  // cater for pre-defined getter/setters
+  var getter = property && property.get;
+  var setter = property && property.set;
+  if ((!getter || setter) && arguments.length === 2) {
+    val = obj[key];
+  }
+
+  var childOb = !shallow && observe(val);
+  Object.defineProperty(obj, key, {
+    enumerable: true,
+    configurable: true,
+    get: function reactiveGetter () { // <- 设置getter
+      var value = getter ? getter.call(obj) : val;
+      if (Dep.target) {
+        dep.depend();// <- 注入依赖关系
+        if (childOb) {
+          childOb.dep.depend();
+          if (Array.isArray(value)) {
+            dependArray(value);
+          }
+        }
+      }
+      return value
+    },
+    set: function reactiveSetter (newVal) {// <-数据被赋值时执行
+      var value = getter ? getter.call(obj) : val;
+      /* eslint-disable no-self-compare */
+      if (newVal === value || (newVal !== newVal && value !== value)) {
+        return
+      }
+      /* eslint-enable no-self-compare */
+      if (process.env.NODE_ENV !== 'production' && customSetter) {
+        customSetter();
+      }
+      // #7981: for accessor properties without setter
+      if (getter && !setter) { return }
+      if (setter) {
+        setter.call(obj, newVal);
+      } else {
+        val = newVal;
+      }
+      childOb = !shallow && observe(newVal);
+      dep.notify();// <-执行subs中的watcher的update函数
+    }
+  });
+}
+```
+
+在组件render时，Dep.target指向的当前的render_watcher，dep.depend()会在当前的dep对象和Dep.target之间构建相互的依赖关系，即实现了在render过程中将引用的依赖关联到render_watcher，这样一来，当某一监测数据被赋值时，就能触发组件的updateComponent函数来重新渲染组件。
+
+![image-20210419103625987](C:\Users\22907\AppData\Roaming\Typora\typora-user-images\image-20210419103625987.png)
+
+### watcher被触发的过程
+
+被observe的数据被赋值时，会调用setter函数，通过dep.notify()来调用每一个与此依赖相关的watcher实例的update函数（其中会调用queueWatcher）。
+
+在queueWatcher函数中watcher都被推入到queue队列中，将在nextTick（Promise.resolve().then）后按watcher.id由小到大进行调用`watcher.run()`
+
+> watcher.id越小表示在queue队列中执行的优先级越高，因为此watcher注册地早。
+
+### cleanupDeps
+
+每个watcher收集完依赖后都会执行cleanupDeps，此函数将比对上一次和这一次收集的依赖，检测不再需要的老的依赖，并从该老依赖的subs中删除此watcher来解除依赖关系，并将此次收集的依赖赋值给`depIds`、`deps`来保留最后一次收集依赖的记录，同时将`newDepIds`、`newDeps`重置为空，用于收集下一次依赖
+
+## watch和computed的实现
+
+## 组件更新过程及prop更新时机

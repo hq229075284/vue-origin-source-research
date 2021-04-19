@@ -4,6 +4,7 @@ export default {
     return {
       j: 1,
       i: 1,
+      c:[1,2]
     };
   },
   watch: {

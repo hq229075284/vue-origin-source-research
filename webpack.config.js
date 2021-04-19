@@ -8,7 +8,8 @@ module.exports = {
   entry: {
     // main: path.join(__dirname, "./src/app-multi-child.js"),
     // main: path.join(__dirname, "./src/app-div.js"),
-    main: path.join(__dirname, "./src/app-watch.js"),
+    // main: path.join(__dirname, "./src/app-watch.js"),
+    main: path.join(__dirname, "./src/app-update.js"),
   },
   output: {
     path: path.resolve(__dirname, "dist"),
