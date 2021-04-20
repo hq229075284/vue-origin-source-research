@@ -1,6 +1,6 @@
 <template>
   <div class="this is component1">
-    this is content of component1-{{a}}
+    this is content of component1-{{ a }}
     <!-- <component2/> -->
   </div>
 </template>
@@ -17,6 +17,21 @@ export default {
       a: 1,
     };
   },
+  watch: {
+    a: {
+      handler() {
+        debugger
+        console.log("a");
+      },
+      immediate: true,
+    },
+  },
+  computed:{
+    b(){
+      debugger
+      return a+1
+    }
+  },
   beforeCreate() {
     console.log("component 1 beforeCreated");
   },
@@ -28,10 +43,10 @@ export default {
   },
   mounted() {
     console.log("component 1 mounted");
-    setTimeout(() => {
-        debugger
-      this.a++;
-    }, 2000);
+    // setTimeout(() => {
+    //     debugger
+    //   this.a++;
+    // }, 2000);
   },
   beforeUpdate() {
     console.log("component 1 beforeUpdate");
@@ -44,6 +59,6 @@ export default {
   },
   destroyed() {
     console.log("component 1 destroyed");
-  }
+  },
 };
 </script>

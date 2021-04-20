@@ -148,7 +148,7 @@ Watcher
     value = this.lazy ? undefined : this.getter.call(vm, vm);
 }
 
-vm上的watch使用for...in循环出来的
+vm上的watch使用for...in循环出来的,顺序无法保证，顺序由各浏览器的实现决定
 ```
 function initWatch (vm, watch) {
   for (var key in watch) {

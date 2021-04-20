@@ -228,4 +228,43 @@ function defineReactive$$1 (
 
 ## watch和computed的实现
 
+### watch
+
+在组件实例化的时候，初始化组件配置项watch
+
+```javascript
+function initWatch (vm, watch) {
+  for (var key in watch) { // <-watch使用for...in循环出来的,顺序无法保证，顺序由各浏览器的实现决定
+    var handler = watch[key];
+    if (Array.isArray(handler)) {
+      for (var i = 0; i < handler.length; i++) {
+        createWatcher(vm, key, handler[i]);
+      }
+    } else {
+      createWatcher(vm, key, handler);
+    }
+  }
+}
+```
+
+在createWatcher中通过new Watcher创建Watcher实例，并通过`Watcher.prototype.get`获取对应watch属性的值，从而触发该属性的getter，通过dep.depend()将watcher和dep绑定依赖关系。
+
+```javascript
+get: function reactiveGetter () {
+      var value = getter ? getter.call(obj) : val;
+      if (Dep.target) {
+        dep.depend();
+        if (childOb) {
+          childOb.dep.depend();
+          if (Array.isArray(value)) {
+            dependArray(value);
+          }
+        }
+      }
+      return value
+    },
+```
+
+
+
 ## 组件更新过程及prop更新时机
