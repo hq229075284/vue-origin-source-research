@@ -251,3 +251,55 @@ function normalizeArrayChildren
 
 // 
 function __patch__
+
+// 更新html标签的属性
+function updateAttrs
+
+
+组件patchVnode更新流程-start
+
+执行cbs.update，更新1个DOM节点
+  // 更新html标签的属性
+  function updateAttrs
+
+  // 更新html标签的class
+  function updateClass
+
+  // 更新html节点的绑定事件
+  function updateDOMListeners
+  function updateListeners
+
+  // 更新DOM对象上的属性
+  function updateDOMProps
+
+  // 更新DOM的style属性
+  function updateStyle
+
+  // 更新ref指向
+  function update
+
+  // 更新指令
+  function updateDirectives
+
+执行updateChildren
+  patchVnode
+
+组件更新流程-end
+
+
+function sameVnode (a, b) {
+  return (
+    a.key === b.key && (
+      (
+        a.tag === b.tag &&
+        a.isComment === b.isComment &&
+        isDef(a.data) === isDef(b.data) &&
+        sameInputType(a, b)
+      ) || (
+        isTrue(a.isAsyncPlaceholder) &&
+        a.asyncFactory === b.asyncFactory &&
+        isUndef(b.asyncFactory.error)
+      )
+    )
+  )
+}

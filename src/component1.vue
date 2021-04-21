@@ -1,9 +1,3 @@
-<template>
-  <div class="this is component1">
-    this is content of component1-{{ a }}-{{ b }}
-    <!-- <component2/> -->
-  </div>
-</template>
 
 <script>
 import component2 from "./component2";
@@ -17,21 +11,6 @@ export default {
       a: 1,
     };
   },
-  watch: {
-    a: {
-      handler() {
-        debugger;
-        console.log("a");
-      },
-      immediate: true,
-    },
-  },
-  computed: {
-    b() {
-      debugger;
-      return this.a + 1;
-    },
-  },
   beforeCreate() {
     console.log("component 1 beforeCreated");
   },
@@ -43,10 +22,10 @@ export default {
   },
   mounted() {
     console.log("component 1 mounted");
-    // setTimeout(() => {
-    //     debugger
-    //   this.a++;
-    // }, 2000);
+    setTimeout(() => {
+      debugger;
+      this.a++;
+    }, 2000);
   },
   beforeUpdate() {
     console.log("component 1 beforeUpdate");
@@ -59,6 +38,17 @@ export default {
   },
   destroyed() {
     console.log("component 1 destroyed");
+  },
+  render() {
+    return (
+      <div class="this is component1">
+        <div key="1">1</div>
+        {this.a % 2 === 0 ? <div key="2">2</div> : null}
+        <div key="3">3</div>
+        {this.a % 2 === 0 ? <div key="4">4</div> : null}
+        <div key="5">5</div>
+      </div>
+    );
   },
 };
 </script>

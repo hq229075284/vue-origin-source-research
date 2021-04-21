@@ -371,3 +371,118 @@ Watcher.prototype.update = function update () {
 ```
 
 ## 组件更新过程及prop更新时机
+
+### 组件更新过程
+
+1. 判断2个节点是否一致
+
+```javascript
+function sameVnode (a, b) {
+  return (
+    a.key === b.key && (
+      (
+        a.tag === b.tag &&
+        a.isComment === b.isComment &&
+        isDef(a.data) === isDef(b.data) &&
+        sameInputType(a, b)
+      ) || (
+        isTrue(a.isAsyncPlaceholder) &&
+        a.asyncFactory === b.asyncFactory &&
+        isUndef(b.asyncFactory.error)
+      )
+    )
+  )
+}
+```
+
+2. 组件根节点更新会调用cbs.update中每个函数来更新节点
+   1. updateAttrs，更新html标签的属性
+   2. updateClass，更新html标签的class
+   3. updateDOMListeners，更新html节点的绑定事件
+      1. updateListeners
+   4. updateDOMProps，更新DOM对象上的属性
+   5. updateStyle，更新DOM的style属性
+   6. update，更新ref指向
+   7. updateDirectives，更新指令
+3. 更新子vnode节点
+
+```javascript
+function updateChildren (parentElm, oldCh, newCh, insertedVnodeQueue, removeOnly) {
+    var oldStartIdx = 0;// <-指oldCh中从前到后第一个还未匹配的节点索引
+    var newStartIdx = 0;// <-指newCh中从前到后第一个还未匹配的节点索引
+    var oldEndIdx = oldCh.length - 1;// <-指oldCh中从后往前第一个还未匹配的节点索引
+    var oldStartVnode = oldCh[0];
+    var oldEndVnode = oldCh[oldEndIdx];
+    var newEndIdx = newCh.length - 1;// <-指newCh中从后往前第一个还未匹配的节点索引
+    var newStartVnode = newCh[0];
+    var newEndVnode = newCh[newEndIdx];
+    var oldKeyToIdx, idxInOld, vnodeToMove, refElm;
+
+    // removeOnly is a special flag used only by <transition-group>
+    // to ensure removed elements stay in correct relative positions
+    // during leaving transitions
+    var canMove = !removeOnly;
+
+    if (process.env.NODE_ENV !== 'production') {
+      checkDuplicateKeys(newCh);
+    }
+
+    while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
+      if (isUndef(oldStartVnode)) {
+        oldStartVnode = oldCh[++oldStartIdx]; // Vnode has been moved left
+      } else if (isUndef(oldEndVnode)) {
+        oldEndVnode = oldCh[--oldEndIdx];
+      } else if (sameVnode(oldStartVnode, newStartVnode)) {// <-头指针节点匹配
+        patchVnode(oldStartVnode, newStartVnode, insertedVnodeQueue, newCh, newStartIdx);
+        oldStartVnode = oldCh[++oldStartIdx];
+        newStartVnode = newCh[++newStartIdx];
+      } else if (sameVnode(oldEndVnode, newEndVnode)) {// <-尾指针节点匹配
+        patchVnode(oldEndVnode, newEndVnode, insertedVnodeQueue, newCh, newEndIdx);
+        oldEndVnode = oldCh[--oldEndIdx];
+        newEndVnode = newCh[--newEndIdx];
+      } else if (sameVnode(oldStartVnode, newEndVnode)) { // Vnode moved right, <- 上一次渲染的头指针节点和当前这次渲染的尾指针节点匹配
+        patchVnode(oldStartVnode, newEndVnode, insertedVnodeQueue, newCh, newEndIdx);
+        // 将oldStartVnode.elm下移，与newCh的顺序保持一致
+        canMove && nodeOps.insertBefore(parentElm, oldStartVnode.elm, nodeOps.nextSibling(oldEndVnode.elm));
+        oldStartVnode = oldCh[++oldStartIdx];
+        newEndVnode = newCh[--newEndIdx];
+      } else if (sameVnode(oldEndVnode, newStartVnode)) { // Vnode moved left, <- 上一次渲染的尾指针节点和当前这次渲染的头指针节点匹配
+        patchVnode(oldEndVnode, newStartVnode, insertedVnodeQueue, newCh, newStartIdx);
+        // 将oldEndVnode.elm上移，与newCh的顺序保持一致
+        canMove && nodeOps.insertBefore(parentElm, oldEndVnode.elm, oldStartVnode.elm);
+        oldEndVnode = oldCh[--oldEndIdx];
+        newStartVnode = newCh[++newStartIdx];
+      } else {
+        if (isUndef(oldKeyToIdx)) { oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx); }// <- 第一次进入这里的时候，收集oldCh的[oldStartIdex,oldEndIdx]范围内的老vnode节点的key，oldKeyToIdx为一个对象，形如：{[key]:index}
+        // 查找newStartVnode对应的vnode节点或者新增一个与newStartVnode对应的新的DOM节点
+        idxInOld = isDef(newStartVnode.key)
+          // newStartVnode有key时，通过oldKeyToIdx中是否存在这个key，来判断oldCh中是否存在同key节点
+          ? oldKeyToIdx[newStartVnode.key]
+          // 在oldCh的[oldStartIdx,oldEndIdx)区间内查找与newStartVnode对应的vnode节点，如果找到则返回索引值，否则返回undefined
+          : findIdxInOld(newStartVnode, oldCh, oldStartIdx, oldEndIdx);
+        if (isUndef(idxInOld)) { // New element
+          createElm(newStartVnode, insertedVnodeQueue, parentElm, oldStartVnode.elm, false, newCh, newStartIdx);
+        } else {
+          vnodeToMove = oldCh[idxInOld];
+          if (sameVnode(vnodeToMove, newStartVnode)) {
+            patchVnode(vnodeToMove, newStartVnode, insertedVnodeQueue, newCh, newStartIdx);
+            oldCh[idxInOld] = undefined;
+            canMove && nodeOps.insertBefore(parentElm, vnodeToMove.elm, oldStartVnode.elm);
+          } else {
+            // same key but different element. treat as new element
+            createElm(newStartVnode, insertedVnodeQueue, parentElm, oldStartVnode.elm, false, newCh, newStartIdx);
+          }
+        }
+        newStartVnode = newCh[++newStartIdx];
+      }
+    }
+    // 可能存在oldCh的索引指针和newCh的索引指针同时耗尽的情况——两者匹配且数量相同
+    if (oldStartIdx > oldEndIdx) { // oldCh的索引指针先耗尽的话，说明在newCh中还可能存在新的节点元素
+      refElm = isUndef(newCh[newEndIdx + 1]) ? null : newCh[newEndIdx + 1].elm;
+      addVnodes(parentElm, refElm, newCh, newStartIdx, newEndIdx, insertedVnodeQueue);
+    } else if (newStartIdx > newEndIdx) {// newCh的索引指针先耗尽，说明在oldCh中存在无效或需要从parentElm中移除的旧元素
+      removeVnodes(oldCh, oldStartIdx, oldEndIdx);
+    }
+  }
+```
+
