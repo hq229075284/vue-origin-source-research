@@ -265,6 +265,109 @@ get: function reactiveGetter () {
     },
 ```
 
+### computed
 
+1. 构建组件构造函数时，将computed属性挂载到构造函数的原型上
+
+```javascript
+function defineComputed (
+  target,
+  key,
+  userDef
+) {
+  var shouldCache = !isServerRendering();
+  if (typeof userDef === 'function') {
+    sharedPropertyDefinition.get = shouldCache
+      ? createComputedGetter(key) // <- 给computed的属性分配getter函数
+      : createGetterInvoker(userDef);
+    sharedPropertyDefinition.set = noop;
+  } else {
+    sharedPropertyDefinition.get = userDef.get
+      ? shouldCache && userDef.cache !== false
+        ? createComputedGetter(key)
+        : createGetterInvoker(userDef.get)
+      : noop;
+    sharedPropertyDefinition.set = userDef.set || noop;
+  }
+  if (process.env.NODE_ENV !== 'production' &&
+      sharedPropertyDefinition.set === noop) {
+    sharedPropertyDefinition.set = function () {
+      warn(
+        ("Computed property \"" + key + "\" was assigned to but it has no setter."),
+        this
+      );
+    };
+  }
+  Object.defineProperty(target, key, sharedPropertyDefinition);
+}
+```
+
+2. 组件实例化的时候，在实例上定义_computedWatchers属性，用于收集所有computed属性对应生成的watcher实例。这些watcher并不会立即通过Watcher.prototype.get收集依赖性，而是都会被标记为dirty，后期使用时用于第一次计算。
+
+```javascript
+function initComputed (vm, computed) {
+  // $flow-disable-line
+  var watchers = vm._computedWatchers = Object.create(null);
+  // computed properties are just getters during SSR
+  var isSSR = isServerRendering();
+
+  for (var key in computed) {
+    var userDef = computed[key];
+    var getter = typeof userDef === 'function' ? userDef : userDef.get;
+    if (process.env.NODE_ENV !== 'production' && getter == null) {
+      warn(
+        ("Getter is missing for computed property \"" + key + "\"."),
+        vm
+      );
+    }
+
+    if (!isSSR) {
+      // create internal watcher for the computed property.
+      watchers[key] = new Watcher(
+        vm,
+        getter || noop,
+        noop,
+        computedWatcherOptions
+      );
+    }
+ 
+    // omit...
+  }
+}
+```
+
+3. 被computed的属性被getter的时候会调用computedGetter函数，会执行watcher.evaluate做第一次计算，返回值会作为watcher的value属性的值，并将computed内的依赖项与render_watcher关联
+
+```javascript
+function createComputedGetter (key) {
+  return function computedGetter () {
+    var watcher = this._computedWatchers && this._computedWatchers[key];
+    if (watcher) {
+      if (watcher.dirty) {
+        watcher.evaluate();// <- computed计算过程中会收集依赖
+      }
+      if (Dep.target) {
+        watcher.depend(); // <- 将computed内的依赖项与render_watcher关联，即使仅computed的依赖项变化也能重新渲染组件
+      }
+      return watcher.value
+    }
+  }
+}
+```
+
+4. 每次依赖性被修改时，都会触发相关watcher的update函数，会把computed对应的watcher的dirty属性重新置为true，在后面render的时候重新获取新的计算值
+
+```javascript
+Watcher.prototype.update = function update () {
+  /* istanbul ignore else */
+  if (this.lazy) {
+    this.dirty = true;
+  } else if (this.sync) {
+    this.run();
+  } else {
+    queueWatcher(this);
+  }
+};
+```
 
 ## 组件更新过程及prop更新时机

@@ -1,6 +1,6 @@
 <template>
   <div class="this is component1">
-    this is content of component1-{{ a }}
+    this is content of component1-{{ a }}-{{ b }}
     <!-- <component2/> -->
   </div>
 </template>
@@ -20,17 +20,17 @@ export default {
   watch: {
     a: {
       handler() {
-        debugger
+        debugger;
         console.log("a");
       },
       immediate: true,
     },
   },
-  computed:{
-    b(){
-      debugger
-      return a+1
-    }
+  computed: {
+    b() {
+      debugger;
+      return this.a + 1;
+    },
   },
   beforeCreate() {
     console.log("component 1 beforeCreated");
