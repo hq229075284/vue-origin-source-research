@@ -1,10 +1,10 @@
 
 <script>
-import component2 from "./component2";
+import Component2 from "./component2";
 export default {
   name: "component1Name",
   components: {
-    component2,
+    component2: Component2,
   },
   data() {
     return {
@@ -22,10 +22,10 @@ export default {
   },
   mounted() {
     console.log("component 1 mounted");
-    setTimeout(() => {
-      debugger;
-      this.a++;
-    }, 2000);
+    // setTimeout(() => {
+    //   debugger;
+    //   this.a++;
+    // }, 2000);
   },
   beforeUpdate() {
     console.log("component 1 beforeUpdate");

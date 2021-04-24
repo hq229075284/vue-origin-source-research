@@ -303,3 +303,55 @@ function sameVnode (a, b) {
     )
   )
 }
+
+// 当前组件的init流程结束后时，通过initComponent中的invokeCreateHooks函数，将当前组件的vnode实例添加到当前patch函数上下文中insertedVnodeQueue数组中
+
+// 在patch函数中会通过createElm，将创建的DOM节点插入到父级DOM节点（如果存在的话）中
+
+// 在当前patch的尾部通过invokeInsertHook函数，
+// 非根组件是第一次创建，当前patch函数上下文中invokeInsertHook的initial参数为true，执行invokeInsertHook函数时，将会把insertedVnodeQueue挂载到父级vnode节点的data.pendingInsert上
+// 根组件可以看成是替换原来挂载点DOM元素，所以patch函数上下文中invokeInsertHook的initial参数为false,执行invokeInsertHook函数时，调用insertedVnodeQueue中每个vnode对应vm的mounted函数
+
+// **在根组件的patch中调用invokeInsertHook，可以保证DOM元素已经存在于document内，但js的执行仍处于同一个宏任务内**
+
+// component1
+//             |-component4
+// component2 -|
+//             |-component5
+// component3
+// 
+// 以上结构，insertedVnodeQueue入栈顺序：[component1,component4,component5,component2,component3]
+
+function createComponent (vnode, insertedVnodeQueue, parentElm, refElm) {
+  var i = vnode.data;
+  if (isDef(i)) {
+    var isReactivated = isDef(vnode.componentInstance) && i.keepAlive;
+    if (isDef(i = i.hook) && isDef(i = i.init)) {
+      i(vnode, false /* hydrating */);
+    }
+    // after calling the init hook, if the vnode is a child component
+    // it should've created a child instance and mounted it. the child
+    // component also has set the placeholder vnode's elm.
+    // in that case we can just return the element and be done.
+    if (isDef(vnode.componentInstance)) {
+      initComponent(vnode, insertedVnodeQueue);
+      insert(parentElm, vnode.elm, refElm);
+      if (isTrue(isReactivated)) {
+        reactivateComponent(vnode, insertedVnodeQueue, parentElm, refElm);
+      }
+      return true
+    }
+  }
+}
+
+function invokeInsertHook (vnode, queue, initial) {
+  // delay insert hooks for component root nodes, invoke them after the
+  // element is really inserted
+  if (isTrue(initial) && isDef(vnode.parent)) {
+    vnode.parent.data.pendingInsert = queue;
+  } else {
+    for (var i = 0; i < queue.length; ++i) {
+      queue[i].data.hook.insert(queue[i]);
+    }
+  }
+}
