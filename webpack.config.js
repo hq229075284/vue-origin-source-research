@@ -1,6 +1,6 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const VueLoaderPlugin = require("vue-loader/lib/plugin");
+const {VueLoaderPlugin} = require("vue-loader");
 
 // console.log(path.resolve(__dirname,'./src/app.js'))
 module.exports = {
@@ -9,7 +9,8 @@ module.exports = {
     // main: path.join(__dirname, "./src/app-multi-child.js"),
     // main: path.join(__dirname, "./src/app-div.js"),
     // main: path.join(__dirname, "./src/app-watch.js"),
-    main: path.join(__dirname, "./src/app-update.js"),
+    main: path.join(__dirname, "./src/main.js"),
+    // main: path.join(__dirname, "./src/app-update.js"),
   },
   output: {
     path: path.resolve(__dirname, "dist"),
@@ -30,10 +31,13 @@ module.exports = {
   },
   resolve: {
     extensions: [".vue", ".js", ".ts", ".jsx", ".tsx"],
-    alias: {
-      vue: path.resolve(__dirname, "node_modules/vue/dist/vue.esm.js"),
-    },
+    // alias: {
+    //   vue: path.resolve(__dirname, "node_modules/vue/dist/vue.esm.js"),
+    // },
   },
+  // externals:{
+  //   vue:'Vue'
+  // },
   devtool: "source-map",
   plugins: [
     new HtmlWebpackPlugin({
@@ -44,7 +48,7 @@ module.exports = {
   ],
   devServer: {
     port: "1000",
-    host: "0.0.0.0",
+    host: "127.0.0.1",
   },
   optimization: {
     splitChunks: {
@@ -55,7 +59,7 @@ module.exports = {
           priority: 2,
         },
         vue: {
-          test: /node_modules[\\/]vue/,
+          test: /node_modules[\\/]@?vue/,
           priority: 3,
         },
         other: {
